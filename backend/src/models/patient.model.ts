@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
+const patientSchema = new mongoose.Schema({
   fullname: {
     type: String,
     required: true,
@@ -19,6 +19,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  walletAmount: {
+    type: Number,
+    required: true,
+  },
 });
+const Patient = mongoose.model("Patient", patientSchema);
 
-export const User = mongoose.model("User", userSchema);
+export default Patient;

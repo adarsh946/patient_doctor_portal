@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
-import { signUpType } from "../types";
+import { signInType, signUpType } from "../types";
+import Patient from "../models/patient.model";
 
 export const signUpController = async (req: any, res: any) => {
   const parsedData = signUpType.safeParse(req.body);
@@ -15,16 +16,59 @@ export const signUpController = async (req: any, res: any) => {
       message: "Password is wrong",
     });
   }
-
-  const hashedPassword = await bcrypt.hash(parsedData.data.password, 10);
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(parsedData.data.password, salt);
 
   try {
+    const user = await Patient.create({
+      fullname: parsedData.data.fullname,
+      email: parsedData.data.email,
+      password: hashedPassword,
+      walletAmount: 1000,
+    });
 
-    const user = await 
+    if (!user) {
+      res.status(500).json({
+        success: false,
+        message: "Problem in Registration",
+      });
+    }
 
-  } catch (error) {}
+    res.status(200).json({
+      success: true,
+      userId: user._id,
+      Balance: user.walletAmount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Problem in Registration",
+    });
+  }
 };
 
 export const signInController = (req: any, res: any) => {
-  res.send("this is signin controller");
+  const parsedData = signInType.safeParse(req.body);
+  if (!parsedData.success) {
+    res.status(403).json({
+      message: "Invalid Input",
+    });
+    return;
+  }
+
+  const user = Patient.findOne({
+    email: parsedData.data.email,
+  });
+
+  if (!user) {
+    res.status(403).json({
+      message: "Patient not found",
+    });
+    return;
+  }
+
+  const isValidPassword = bcrypt.compare(
+    parsedData.data.password,
+    user.password
+  );
 };
