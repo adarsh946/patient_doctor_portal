@@ -1,4 +1,4 @@
-import { z } from "zod";
+import z from "zod";
 
 export const signUpType = z.object({
   fullname: z.string(),

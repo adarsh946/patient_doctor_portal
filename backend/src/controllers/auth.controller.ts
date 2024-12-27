@@ -47,7 +47,7 @@ export const signUpController = async (req: any, res: any) => {
   }
 };
 
-export const signInController = (req: any, res: any) => {
+export const signInController = async (req: any, res: any) => {
   const parsedData = signInType.safeParse(req.body);
   if (!parsedData.success) {
     res.status(403).json({
@@ -56,7 +56,7 @@ export const signInController = (req: any, res: any) => {
     return;
   }
 
-  const user = Patient.findOne({
+  const user = await Patient.findOne({
     email: parsedData.data.email,
   });
 
@@ -71,4 +71,15 @@ export const signInController = (req: any, res: any) => {
     parsedData.data.password,
     user.password
   );
+
+  if (!isValidPassword) {
+    res.status(403).json({
+      messgae: "Incorrect password",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "signIn successfull",
+  });
 };
