@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const patientSchema = new mongoose.Schema({
   fullname: {
@@ -24,6 +25,7 @@ const patientSchema = new mongoose.Schema({
     required: true,
   },
 });
+
 const Patient = mongoose.model("Patient", patientSchema);
 
 export default Patient;

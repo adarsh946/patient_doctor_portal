@@ -1,48 +1,63 @@
 import bcrypt from "bcryptjs";
 import { signInType, signUpType } from "../types";
 import Patient from "../models/patient.model";
+import jwt from "jsonwebtoken";
 
 export const signUpController = async (req: any, res: any) => {
   const parsedData = signUpType.safeParse(req.body);
   if (!parsedData.success) {
+    console.log(parsedData.error.issues);
     res.status(403).json({
       message: "Invalid Input",
     });
     return;
   }
+  console.log(parsedData);
+  console.log("first");
 
   if (!(parsedData.data.password === parsedData.data.confirmPassword)) {
-    res.status(403).json({
+    return res.status(403).json({
       message: "Password is wrong",
     });
   }
+  console.log("second");
+
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(parsedData.data.password, salt);
 
+  console.log(hashedPassword);
+  console.log("third");
+
   try {
-    const user = await Patient.create({
+    const user = {
       fullname: parsedData.data.fullname,
       email: parsedData.data.email,
       password: hashedPassword,
-      walletAmount: 1000,
-    });
+    };
 
-    if (!user) {
-      res.status(500).json({
+    const newUser = new Patient(user);
+    await newUser.save();
+
+    console.log("forth");
+
+    const token = jwt.sign(newUser._id, process.env.JWT_SECRET!);
+
+    if (!newUser) {
+      return res.status(500).json({
         success: false,
         message: "Problem in Registration",
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      userId: user._id,
-      Balance: user.walletAmount,
+      userId: newUser._id,
+      token,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Problem in Registration",
+      message: "registration unsuccessfull",
     });
   }
 };
